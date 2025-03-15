@@ -1,6 +1,6 @@
 {
 	"name": "@infinityfx/splash",
-	"version": "0.0.0",
+	"version": "0.0.2",
 	"type": "module",
 	"description": "React toast notifications for Fluid UI.",
 	"main": "dist/index.js",

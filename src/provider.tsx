@@ -9,11 +9,22 @@ import { LuX, LuCheck } from 'react-icons/lu';
 
 export default function Splash({ children, stack = 3, position = { x: 'right', y: 'bottom' }, round = false, onOpen }: {
     children: React.ReactNode;
+    /**
+     * How many toasts to display at a time.
+     * 
+     * @default 3
+     */
     stack?: number;
+    /**
+     * @default { x: 'right', y: 'bottom' }
+     */
     position?: {
         x?: 'left' | 'center' | 'right';
         y?: 'top' | 'bottom';
     };
+    /**
+     * @default false
+     */
     round?: boolean;
     onOpen?: (toast: { title: string; color: string; }) => void;
 }) {
@@ -21,6 +32,7 @@ export default function Splash({ children, stack = 3, position = { x: 'right', y
     const toasts = useRef<{
         id: number;
         closeAfter: number;
+        resolve: (value: boolean) => void;
         remove: () => void;
         title: string;
         color: string;
@@ -31,7 +43,7 @@ export default function Splash({ children, stack = 3, position = { x: 'right', y
     }[]>([]);
     const [state, setState] = useState(toasts.current);
 
-    function splash({ closeAfter = 4000, ...props }: Params) {
+    function splash({ closeAfter = 4000, ...props }: Params): Promise<boolean> {
         const id = Date.now();
 
         function remove(id?: number) {
@@ -41,11 +53,15 @@ export default function Splash({ children, stack = 3, position = { x: 'right', y
 
                 const [toast] = toasts.current.splice(i, 1);
                 toast.onClose?.();
+                toast.resolve(true);
             } else {
-                toasts.current = toasts.current.filter(({ id, closeAfter, onClose }, i) => {
+                toasts.current = toasts.current.filter(({ id, closeAfter, onClose, resolve }, i) => {
                     const keep = i >= stack || !closeAfter || id + closeAfter > Date.now();
 
-                    if (!keep) onClose?.();
+                    if (!keep) {
+                        onClose?.();
+                        resolve(false);
+                    }
 
                     return keep;
                 });
@@ -65,15 +81,18 @@ export default function Splash({ children, stack = 3, position = { x: 'right', y
             timeout.current = setTimeout(remove, closeAfter);
         }
 
-        toasts.current.unshift({
-            id,
-            remove: remove.bind({}, id),
-            closeAfter,
-            ...props
-        });
+        return new Promise((resolve) => {
+            toasts.current.unshift({
+                id,
+                remove: remove.bind({}, id),
+                resolve,
+                closeAfter,
+                ...props
+            });
 
-        onOpen?.({ title: props.title, color: props.color });
-        setState(toasts.current.slice());
+            onOpen?.({ title: props.title, color: props.color });
+            setState(toasts.current.slice());
+        });
     }
 
     const success = (args: PartialParams) => splash(Object.assign({ color: 'var(--f-clr-primary-100)', icon: <LuCheck /> }, args));
@@ -85,7 +104,7 @@ export default function Splash({ children, stack = 3, position = { x: 'right', y
     return <SplashContext value={{ splash, success, error }}>
         <div style={{
             overflow: 'hidden',
-            position: 'absolute',
+            position: 'fixed',
             inset: 0,
             padding: 'var(--f-spacing-med)',
             display: 'flex',
@@ -108,7 +127,7 @@ export default function Splash({ children, stack = 3, position = { x: 'right', y
                 pointerEvents: 'all'
             }}>
                 <LayoutGroup transition={{ duration: .4 }}>
-                    {state.slice(0, stack).map(({ id, body, remove, closeAfter, ...props }, i) => <Animatable
+                    {state.slice(0, stack).map(({ id, body, remove, resolve, closeAfter, ...props }, i) => <Animatable
                         id={'' + id}
                         key={'' + id}
                         adaptive
