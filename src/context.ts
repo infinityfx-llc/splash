@@ -27,9 +27,9 @@ export type Params = PartialParams & {
 };
 
 const SplashContext = createContext<{
-    splash: (args: Params) => void;
-    success: (args: PartialParams) => void;
-    error: (args: PartialParams) => void;
+    splash: (args: Params) => Promise<boolean>;
+    success: (args: PartialParams) => Promise<boolean>;
+    error: (args: PartialParams) => Promise<boolean>;
 } | null>(null);
 
 export default SplashContext;
