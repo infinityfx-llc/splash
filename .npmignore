@@ -1,5 +1,6 @@
 node_modules/
 src/
+compiled/
 
 rollup.config.js
 .tsconfig.json

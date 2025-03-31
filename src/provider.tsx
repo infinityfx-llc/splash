@@ -2,12 +2,43 @@
 
 import { useEffect, useRef, useState } from "react";
 import SplashContext, { Params, PartialParams } from "./context";
-import { Toast } from "@infinityfx/fluid";
+import { Selectors, Toast } from "@infinityfx/fluid";
+import { combineClasses } from '@infinityfx/fluid/utils';
+import { createStyles } from "@infinityfx/fluid/css";
 import { LayoutGroup } from "@infinityfx/lively/layout";
 import { Animatable } from "@infinityfx/lively";
-import { LuX, LuCheck } from 'react-icons/lu';
+import { LuX, LuCheck } from "react-icons/lu"; // maybe use fluid internal icons?
 
-export default function Splash({ children, stack = 3, position = { x: 'right', y: 'bottom' }, round = false, onOpen }: {
+const styles = createStyles('splash', fluid => ({
+    '.wrapper': {
+        position: 'fixed',
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        padding: 'var(--f-spacing-med)',
+        display: 'flex',
+        alignItems: 'var(--y)',
+        justifyContent: 'var(--x)',
+        zIndex: 500,
+        inset: 0
+    },
+    '.toasts': {
+        display: 'flex',
+        flexDirection: 'column-reverse',
+        gap: 'var(--f-spacing-sml)',
+        pointerEvents: 'all'
+    },
+    [`@media (max-width: ${fluid.breakpoints.mob}px)`]: {
+        '.wrapper': {
+            justifyContent: 'stretch'
+        },
+        '.toasts': {
+            width: '100%'
+        }
+    }
+}));
+
+export default function Splash({ children, cc = {}, stack = 3, position = { x: 'right', y: 'bottom' }, round = false, onOpen }: {
+    cc?: Selectors<'toasts'>;
     children: React.ReactNode;
     /**
      * How many toasts to display at a time.
@@ -28,6 +59,8 @@ export default function Splash({ children, stack = 3, position = { x: 'right', y
     round?: boolean;
     onOpen?: (toast: { title: string; color: string; }) => void;
 }) {
+    const style = combineClasses(styles, cc);
+
     const timeout = useRef<number | undefined>(undefined);
     const toasts = useRef<{
         id: number;
@@ -102,30 +135,20 @@ export default function Splash({ children, stack = 3, position = { x: 'right', y
     useEffect(() => () => clearTimeout(timeout.current), []);
 
     return <SplashContext value={{ splash, success, error }}>
-        <div style={{
-            overflow: 'hidden',
-            position: 'fixed',
-            inset: 0,
-            padding: 'var(--f-spacing-med)',
-            display: 'flex',
-            zIndex: 500,
-            alignItems: {
-                bottom: 'flex-end',
-                top: 'flex-start'
-            }[position.y || 'bottom'],
-            justifyContent: {
-                left: 'flex-start',
-                center: 'center',
-                right: 'flex-end'
-            }[position.x || 'right'],
-            pointerEvents: 'none'
-        }}>
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column-reverse',
-                gap: 'var(--f-spacing-sml)',
-                pointerEvents: 'all'
-            }}>
+        <div
+            className={style.wrapper}
+            style={{
+                '--x': {
+                    left: 'flex-start',
+                    center: 'center',
+                    right: 'flex-end'
+                }[position.x || 'right'],
+                '--y': {
+                    bottom: 'flex-end',
+                    top: 'flex-start'
+                }[position.y || 'bottom']
+            } as any}>
+            <div className={style.toasts}>
                 <LayoutGroup transition={{ duration: .4 }}>
                     {state.slice(0, stack).map(({ id, body, remove, resolve, closeAfter, ...props }, i) => <Animatable
                         id={'' + id}
