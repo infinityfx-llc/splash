@@ -18,7 +18,7 @@ const styles = createStyles('splash', fluid => ({
         display: 'flex',
         alignItems: 'var(--y)',
         justifyContent: 'var(--x)',
-        zIndex: 500,
+        zIndex: 9999,
         inset: 0
     },
     '.toasts': {
