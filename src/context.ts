@@ -18,7 +18,7 @@ export type PartialParams = {
     /**
      * Optional callback, that gets called when the toast closes.
      */
-    onClose?: () => void;
+    onClose?: (manual: boolean) => void;
 };
 
 export type Params = PartialParams & {

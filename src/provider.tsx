@@ -21,12 +21,18 @@ const styles = createStyles('splash', fluid => ({
         zIndex: 9999,
         inset: 0
     },
+
     '.toasts': {
         display: 'flex',
         flexDirection: 'column-reverse',
         gap: 'var(--f-spacing-sml)',
         pointerEvents: 'all'
     },
+
+    '.toasts > *': {
+        boxShadow: 'var(--f-shadow-sml)'
+    },
+
     [`@media (max-width: ${fluid.breakpoints.mob}px)`]: {
         '.wrapper': {
             justifyContent: 'stretch'
@@ -62,79 +68,67 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
     const style = combineClasses(styles, cc);
 
     const timeout = useRef<number | undefined>(undefined);
-    const toasts = useRef<{
+    const toasts = useRef<({
         id: number;
-        closeAfter: number;
-        resolve: (value: boolean) => void;
-        remove: () => void;
-        title: string;
-        color: string;
-        icon: React.ReactNode;
-        body?: React.ReactNode;
-        action?: React.ReactNode;
-        onClose?: () => void;
-    }[]>([]);
+        onClose: (manual: boolean) => void;
+    } & Omit<Params, 'onClose'>)[]>([]);
     const [state, setState] = useState(toasts.current);
 
-    function splash({ closeAfter = 4000, ...props }: Params): Promise<boolean> {
-        const id = Date.now();
+    function closeExpired() {
+        toasts.current = toasts.current.filter(({ id, closeAfter, onClose }, i) => {
+            const keep = i >= stack || !closeAfter || id + closeAfter > Date.now();
+            if (!keep) onClose(false);
 
-        function remove(id?: number) {
-            if (id) {
-                const i = toasts.current.findIndex(toast => toast.id === id);
-                if (i < 0) return;
+            return keep;
+        });
 
-                const [toast] = toasts.current.splice(i, 1);
-                toast.onClose?.();
-                toast.resolve(true);
-            } else {
-                toasts.current = toasts.current.filter(({ id, closeAfter, onClose, resolve }, i) => {
-                    const keep = i >= stack || !closeAfter || id + closeAfter > Date.now();
+        setState(toasts.current.slice());
 
-                    if (!keep) {
-                        onClose?.();
-                        resolve(false);
-                    }
-
-                    return keep;
-                });
-            }
-
-            setState(toasts.current.slice());
-
-            const [toast] = toasts.current;
-            if (toast?.closeAfter) {
-                clearTimeout(timeout.current);
-                timeout.current = setTimeout(remove, toast.closeAfter);
-            }
-        };
-
-        if (closeAfter) {
+        const toast = toasts.current.find(({ closeAfter }) => closeAfter);
+        if (toast) {
             clearTimeout(timeout.current);
-            timeout.current = setTimeout(remove, closeAfter);
+            timeout.current = setTimeout(closeExpired, toast.closeAfter);
         }
+    }
 
+    function splash({ closeAfter = 4000, onClose, ...props }: Params): Promise<boolean> {
         return new Promise((resolve) => {
-            toasts.current.unshift({
-                id,
-                remove: remove.bind({}, id),
-                resolve,
-                closeAfter,
-                ...props
-            });
+            const id = Date.now();
 
-            onOpen?.({ title: props.title, color: props.color });
+            toasts.current.unshift({
+                ...props,
+                id,
+                closeAfter,
+                onClose(manual) {
+                    onClose?.(manual);
+                    resolve(manual);
+                }
+            });
             setState(toasts.current.slice());
+
+            if (closeAfter) {
+                clearTimeout(timeout.current);
+                timeout.current = setTimeout(closeExpired, closeAfter);
+            }
+
+            onOpen?.({
+                title: props.title,
+                color: props.color
+            });
         });
     }
 
-    const success = (args: PartialParams) => splash(Object.assign({ color: 'var(--f-clr-primary-100)', icon: <LuCheck /> }, args));
-
-    const error = (args: PartialParams) => splash(Object.assign({ color: 'var(--f-clr-error-100)', icon: <LuX /> }, args));
-
     useEffect(() => () => clearTimeout(timeout.current), []);
 
-    return <SplashContext value={{ splash, success, error }}>
+    return <SplashContext value={{
+        splash,
+        success(args: PartialParams) {
+            return splash(Object.assign({ color: 'var(--f-clr-primary-100)', icon: <LuCheck /> }, args));
+        },
+        error(args: PartialParams) {
+            return splash(Object.assign({ color: 'var(--f-clr-error-100)', icon: <LuX /> }, args));
+        }
+    }}>
         <div
             className={style.wrapper}
             style={{
@@ -150,7 +144,7 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
             } as any}>
             <div className={style.toasts}>
                 <LayoutGroup transition={{ duration: .4 }}>
-                    {state.slice(0, stack).map(({ id, body, remove, resolve, closeAfter, ...props }, i) => <Animatable
+                    {state.slice(0, stack).map(({ id, body, closeAfter, onClose, ...props }, i) => <Animatable
                         id={'' + id}
                         key={'' + id}
                         adaptive
@@ -178,9 +172,14 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
                         <Toast
                             {...props}
                             round={round}
-                            onClose={remove}
-                            style={{
-                                boxShadow: 'var(--f-shadow-sml)'
+                            onClose={() => {
+                                const i = toasts.current.findIndex(toast => toast.id === id);
+                                if (i < 0) return;
+
+                                toasts.current.splice(i, 1);
+                                onClose(true);
+
+                                setState(toasts.current.slice());
                             }}>
                             {body}
                         </Toast>
