@@ -10,9 +10,6 @@ import { Animatable } from "@infinityfx/lively";
 import { LuX, LuCheck } from "react-icons/lu"; // maybe use fluid internal icons?
 import SplashToast from "./splash-toast";
 
-// Trick compiler into including Toast styles
-// import { Toast } from "@infinityfx/fluid";
-
 const styles = createStyles('splash', fluid => ({
     '.wrapper': {
         position: 'fixed',
