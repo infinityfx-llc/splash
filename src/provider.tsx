@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import SplashContext, { Params, PartialParams } from "./context";
-import { Selectors, Toast } from "@infinityfx/fluid";
+import { Selectors } from "@infinityfx/fluid";
 import { combineClasses } from '@infinityfx/fluid/utils';
 import { createStyles } from "@infinityfx/fluid/css";
 import { LayoutGroup } from "@infinityfx/lively/layout";
 import { Animatable } from "@infinityfx/lively";
 import { LuX, LuCheck } from "react-icons/lu"; // maybe use fluid internal icons?
+import SplashToast from "./splash-toast";
+
+// Trick compiler into including Toast styles
+// import { Toast } from "@infinityfx/fluid";
 
 const styles = createStyles('splash', fluid => ({
     '.wrapper': {
@@ -144,10 +148,11 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
             } as any}>
             <div className={style.toasts}>
                 <LayoutGroup transition={{ duration: .4 }}>
-                    {state.slice(0, stack).map(({ id, body, closeAfter, onClose, ...props }, i) => <Animatable
+                    {state.slice(0, stack).map(({ id, onClose, closeAfter, ...props }, i) => <Animatable
                         id={'' + id}
                         key={'' + id}
                         adaptive
+                        cachable={['x', 'y']}
                         animations={{
                             top: {
                                 opacity: [0, 1],
@@ -169,20 +174,18 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
                             { on: 'mount', name: i ? 'top' : 'bottom' },
                             { on: 'unmount', name: 'unmount' }
                         ]}>
-                        <Toast
+                        <SplashToast
                             {...props}
                             round={round}
-                            onClose={() => {
+                            onClose={(manual: boolean) => {
                                 const i = toasts.current.findIndex(toast => toast.id === id);
                                 if (i < 0) return;
 
                                 toasts.current.splice(i, 1);
-                                onClose(true);
+                                onClose(manual);
 
                                 setState(toasts.current.slice());
-                            }}>
-                            {body}
-                        </Toast>
+                            }} />
                     </Animatable>)}
                 </LayoutGroup>
             </div>

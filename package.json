@@ -1,6 +1,6 @@
 {
 	"name": "@infinityfx/splash",
-	"version": "0.0.6",
+	"version": "0.1.0",
 	"type": "module",
 	"description": "React toast notifications for Fluid UI.",
 	"main": "dist/index.js",
@@ -34,14 +34,14 @@
 	},
 	"peerDependencies": {
 		"@infinityfx/fluid": "^1.4.3",
-		"@infinityfx/lively": "^4.0.6",
+		"@infinityfx/lively": "^4.0.7",
 		"react-icons": ">=5.4.0",
 		"react": ">=19.0.0",
 		"react-dom": ">=19.0.0"
 	},
 	"devDependencies": {
 		"@infinityfx/fluid": "^1.4.3",
-		"@infinityfx/lively": "^4.0.6",
+		"@infinityfx/lively": "^4.0.7",
 		"@rollup/plugin-commonjs": "^28.0.2",
 		"@rollup/plugin-node-resolve": "^16.0.0",
 		"@rollup/plugin-terser": "^0.4.4",
