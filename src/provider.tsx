@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import SplashContext, { Params, PartialParams } from "./context";
-import { Selectors } from "@infinityfx/fluid";
+import { Icon, Selectors } from "@infinityfx/fluid";
 import { combineClasses } from '@infinityfx/fluid/utils';
 import { createStyles } from "@infinityfx/fluid/css";
 import { LayoutGroup } from "@infinityfx/lively/layout";
 import { Animatable } from "@infinityfx/lively";
-import { LuX, LuCheck } from "react-icons/lu"; // maybe use fluid internal icons?
 import SplashToast from "./splash-toast";
 
 const styles = createStyles('splash', fluid => ({
@@ -124,10 +123,10 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
     return <SplashContext value={{
         splash,
         success(args: PartialParams) {
-            return splash(Object.assign({ color: 'var(--f-clr-primary-100)', icon: <LuCheck /> }, args));
+            return splash(Object.assign({ color: 'var(--f-clr-primary-100)', icon: <Icon type="check" /> }, args));
         },
         error(args: PartialParams) {
-            return splash(Object.assign({ color: 'var(--f-clr-error-100)', icon: <LuX /> }, args));
+            return splash(Object.assign({ color: 'var(--f-clr-error-100)', icon: <Icon type="close" /> }, args));
         }
     }}>
         <div
