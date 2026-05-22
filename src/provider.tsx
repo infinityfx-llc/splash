@@ -5,8 +5,7 @@ import SplashContext, { Params, PartialParams } from "./context";
 import { Icon, Selectors } from "@infinityfx/fluid";
 import { combineClasses } from '@infinityfx/fluid/utils';
 import { createStyles } from "@infinityfx/fluid/css";
-import { LayoutGroup } from "@infinityfx/lively/layout";
-import { Animatable } from "@infinityfx/lively";
+import { Animate, LayoutGroup } from "@infinityfx/lively";
 import SplashToast from "./splash-toast";
 
 const styles = createStyles('splash', fluid => ({
@@ -143,13 +142,14 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
                 }[position.y || 'bottom']
             } as any}>
             <div className={style.toasts}>
-                <LayoutGroup transition={{ duration: .4 }}>
-                    {state.slice(0, stack).map(({ id, onClose, closeAfter, ...props }, i) => <Animatable
-                        id={'' + id}
-                        key={'' + id}
-                        adaptive
-                        cachable={['x', 'y']}
-                        animations={{
+                <LayoutGroup>
+                    {state.slice(0, stack).map(({ id, onClose, closeAfter, ...props }, i) => <Animate
+                        key={id}
+                        transition={{
+                            duration: .4,
+                            cache: ['x', 'y']
+                        }}
+                        clips={{
                             top: {
                                 opacity: [0, 1],
                                 translate: ['0% -100%', '0% 0%'],
@@ -166,10 +166,11 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
                                 duration: .25
                             }
                         }}
-                        triggers={[
-                            { on: 'mount', name: i ? 'top' : 'bottom' },
-                            { on: 'unmount', name: 'unmount' }
-                        ]}>
+                        triggers={{
+                            unmount: ['unmount'],
+                            top: i ? ['mount'] : [],
+                            bottom: i ? [] : ['mount']
+                        }}>
                         <SplashToast
                             {...props}
                             round={round}
@@ -182,7 +183,7 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
 
                                 setState(toasts.current.slice());
                             }} />
-                    </Animatable>)}
+                    </Animate>)}
                 </LayoutGroup>
             </div>
         </div>

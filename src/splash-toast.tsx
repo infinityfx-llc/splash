@@ -1,5 +1,5 @@
 import { Toast } from "@infinityfx/fluid";
-import { Animatable } from "@infinityfx/lively";
+import { Animate } from "@infinityfx/lively";
 import { Params } from "./context";
 import { useEffect, useRef } from "react";
 import { useLink } from "@infinityfx/lively/hooks";
@@ -13,6 +13,7 @@ export default function SplashToast({ ref, body, onClose, ...props }: {
     const toastRef = useRef<HTMLDivElement>(null);
     const touch = useRef(-1);
     const link = useLink(0);
+    const translate = useLink(link, val => `${val}px 0px`)
 
     useEffect(() => {
         const ctrl = new AbortController();
@@ -38,9 +39,9 @@ export default function SplashToast({ ref, body, onClose, ...props }: {
         return () => ctrl.abort();
     }, []);
 
-    return <Animatable
+    return <Animate
         animate={{
-            translate: link(val => `${val}px 0px`)
+            translate
         }}>
         <Toast
             {...props}
@@ -49,5 +50,5 @@ export default function SplashToast({ ref, body, onClose, ...props }: {
             onTouchStart={e => touch.current = e.touches[0].clientX}>
             {body}
         </Toast>
-    </Animatable>;
+    </Animate>;
 }

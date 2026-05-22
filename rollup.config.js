@@ -27,7 +27,7 @@ const onwarn = (msg, handler) => {
 
 export default {
     input: ['src/index.ts'],
-    external: ['react', /react\-dom/, /react\/jsx\-runtime/, /@infinityfx\/lively/, /@infinityfx\/fluid/, /react\-icons/, 'tslib'],
+    external: ['react', /react\-dom/, /react\/jsx\-runtime/, /@infinityfx\/lively/, /@infinityfx\/fluid/, 'tslib'],
     output: {
         dir: 'dist',
         format: 'es',
