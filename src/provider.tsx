@@ -90,7 +90,7 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
         }
     }
 
-    function splash({ closeAfter = 4000, onClose, ...props }: Params): Promise<boolean> {
+    function splash({ closeAfter = 4000, onClose, ...props }: Params): Promise<boolean> { // TODO: closeAfter promise (show loading spinner)
         return new Promise((resolve) => {
             const id = Date.now();
 
@@ -142,7 +142,7 @@ export default function Splash({ children, cc = {}, stack = 3, position = { x: '
                 }[position.y || 'bottom']
             } as any}>
             <div className={style.toasts}>
-                <LayoutGroup>
+                <LayoutGroup ignoreWarnings>
                     {state.slice(0, stack).map(({ id, onClose, closeAfter, ...props }, i) => <Animate
                         key={id}
                         transition={{
